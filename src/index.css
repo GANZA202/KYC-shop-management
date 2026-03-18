@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    body {
+      background: white !important;
+      color: black !important;
+    }
+    
+    .print-only {
+      display: block !important;
+    }
+    
+    .card, .bg-white {
+      border: 1px solid #eee !important;
+      box-shadow: none !important;
+    }
+    
+    nav, aside, button, .filters-section {
+      display: none !important;
+    }
+    
+    main {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    
+    .print-header {
+      display: block !important;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+  }
+}
+
+.print-only {
+  display: none;
+}
+
+.print-header {
+  display: none;
+}
