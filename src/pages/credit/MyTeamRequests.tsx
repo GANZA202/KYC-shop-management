@@ -20,17 +20,28 @@ export function MyTeamRequests() {
   const [requests, setRequests] = useState<CreditRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     if (profile?.id) {
       loadRequests();
     }
-  }, [profile]);
+  }, [profile, debouncedSearch, statusFilter]);
 
   const loadRequests = async () => {
     try {
-      const data = await creditService.getSupervisorRequests(profile!.id);
+      const data = await creditService.getSupervisorRequests(profile!.id, {
+        search: debouncedSearch,
+        status: statusFilter
+      });
       setRequests(data);
     } catch (error) {
       console.error('Error loading requests:', error);
@@ -40,12 +51,7 @@ export function MyTeamRequests() {
     }
   };
 
-  const filteredRequests = requests.filter(req => {
-    const matchesSearch = req.request_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         req.employee?.full_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredRequests = requests;
 
   const getStatusBadge = (status: string) => {
     switch (status) {

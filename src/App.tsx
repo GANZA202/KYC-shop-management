@@ -20,6 +20,7 @@ import { MyWorkersPage } from './pages/supervisor/MyWorkersPage';
 import { DailyAttendancePage } from './pages/supervisor/DailyAttendancePage';
 import { AttendanceHistoryPage } from './pages/supervisor/AttendanceHistoryPage';
 import { SectorAttendanceSummaryPage } from './pages/team-leader/SectorAttendanceSummaryPage';
+import { SectorsPage } from './pages/admin/SectorsPage';
 import { AttendanceReportsPage } from './pages/admin/AttendanceReportsPage';
 import { CreateCreditRequest } from './pages/credit/CreateCreditRequest';
 import { MyTeamRequests } from './pages/credit/MyTeamRequests';
@@ -180,6 +181,16 @@ export default function App() {
           {/* Redirect /attendance to appropriate page based on role would be ideal, but for now just a simple redirect or placeholder */}
           <Route path="/attendance" element={<Navigate to="/" replace />} />
 
+          <Route
+            path="/admin/sectors"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <DashboardLayout>
+                  <SectorsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/employees"
             element={

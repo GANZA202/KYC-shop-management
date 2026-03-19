@@ -64,12 +64,28 @@ export const inventoryService = {
   },
 
   // Stock Movements
-  async getStockMovements(limit = 50) {
-    return await supabase
+  async getStockMovements(filters?: { search?: string; type?: string; limit?: number }) {
+    let query = supabase
       .from('stock_movements')
-      .select('*, product:products(*)')
+      .select('*, product:products(*)');
+
+    if (filters?.type) {
+      query = query.eq('movement_type', filters.type);
+    }
+
+    if (filters?.search) {
+      // Search in product name or SKU via the joined table
+      // Note: Supabase doesn't support direct search on joined tables easily with .or() 
+      // unless we use a specific syntax or a view. 
+      // For now, we'll use a simpler approach or assume we might need a view for complex joins.
+      // Alternatively, we can filter by product_id if we find the products first.
+      // But let's try the standard way if possible.
+      query = query.or(`product_name.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`, { foreignTable: 'products' });
+    }
+
+    return await query
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .limit(filters?.limit || 50);
   },
 
   async stockIn(movement: { product_id: string; quantity: number; unit_price: number; notes?: string }) {

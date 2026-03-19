@@ -1,13 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
-// --- Supabase Configuration for Cloudflare Worker Deployment ---
-// These values are hardcoded to avoid Cloudflare Worker environment variable restrictions.
-// This is safe for frontend use because it only uses the anon public key.
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const supabaseUrl = 'https://qhkftofvpxckhayqhkpx.supabase.co';
-const supabaseAnonKey = '<Your Supabase Publishable Key>';
+// Check if the configuration is missing or using placeholder values
+export const isSupabaseConfigured = !!supabaseUrl && 
+  !!supabaseAnonKey && 
+  supabaseUrl !== 'your-supabase-url' && 
+  !supabaseUrl.includes('placeholder');
 
-export const isSupabaseConfigured = (supabaseUrl as string) !== 'https://placeholder-url.supabase.co' && 
-  (supabaseAnonKey as string) !== '<Your Supabase Publishable Key>';
+if (!isSupabaseConfigured) {
+  console.warn(
+    '⚠️ SUPABASE CONFIGURATION MISSING: Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.'
+  );
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder-url.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+);

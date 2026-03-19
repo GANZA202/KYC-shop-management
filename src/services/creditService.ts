@@ -74,12 +74,26 @@ export const creditService = {
     return newRequest;
   },
 
-  async getSupervisorRequests(supervisorId: string) {
-    const { data, error } = await supabase
+  async getSupervisorRequests(supervisorId: string, filters?: { search?: string; status?: string }) {
+    let query = supabase
       .from('credit_requests')
-      .select('*, employee:employees(*)')
-      .eq('supervisor_id', supervisorId)
-      .order('created_at', { ascending: false });
+      .select('*, employee:employees(*)');
+
+    if (supervisorId) {
+      query = query.eq('supervisor_id', supervisorId);
+    }
+
+    if (filters?.status && filters.status !== 'all') {
+      query = query.eq('status', filters.status);
+    }
+
+    if (filters?.search) {
+      // Search in request number or employee name
+      // Using .or with foreign table for employee name
+      query = query.or(`request_number.ilike.%${filters.search}%,full_name.ilike.%${filters.search}%`, { foreignTable: 'employees' });
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
     
     if (error) throw error;
     return data;

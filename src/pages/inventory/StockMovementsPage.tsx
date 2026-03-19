@@ -16,25 +16,31 @@ export function StockMovementsPage() {
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     fetchMovements();
-  }, []);
+  }, [debouncedSearch, typeFilter]);
 
   const fetchMovements = async () => {
     setLoading(true);
-    const { data } = await inventoryService.getStockMovements();
+    const { data } = await inventoryService.getStockMovements({
+      search: debouncedSearch,
+      type: typeFilter
+    });
     if (data) setMovements(data);
     setLoading(false);
   };
 
-  const filteredMovements = movements.filter(m => {
-    const matchesSearch = m.product?.product_name.toLowerCase().includes(search.toLowerCase()) ||
-                         m.product?.sku.toLowerCase().includes(search.toLowerCase());
-    const matchesType = typeFilter === '' || m.movement_type === typeFilter;
-    return matchesSearch && matchesType;
-  });
+  const filteredMovements = movements;
 
   return (
     <div className="space-y-6">

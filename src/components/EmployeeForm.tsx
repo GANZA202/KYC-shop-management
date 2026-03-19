@@ -14,7 +14,8 @@ import {
   Building2,
   CheckCircle2,
   UserPlus,
-  ChevronDown
+  ChevronDown,
+  Search
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -34,6 +35,7 @@ export function EmployeeForm({ onClose, onSuccess }: EmployeeFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [supervisors, setSupervisors] = useState<Profile[]>([]);
+  const [supervisorSearch, setSupervisorSearch] = useState('');
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -118,6 +120,10 @@ export function EmployeeForm({ onClose, onSuccess }: EmployeeFormProps) {
       setLoading(false);
     }
   };
+
+  const filteredSupervisors = supervisors.filter(s => 
+    s.full_name.toLowerCase().includes(supervisorSearch.toLowerCase())
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-md p-0 sm:p-4 overflow-y-auto">
@@ -297,20 +303,32 @@ export function EmployeeForm({ onClose, onSuccess }: EmployeeFormProps) {
                       <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
                         {t('Assigned Supervisor')}
                       </label>
-                      <div className="group relative">
-                        <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-emerald-500 transition-colors pointer-events-none" size={18} />
-                        <select
-                          name="supervisor_id"
-                          value={formData.supervisor_id}
-                          onChange={handleChange}
-                          className="w-full rounded-2xl border border-stone-200 bg-stone-50/30 pl-12 pr-10 py-3.5 text-sm text-stone-900 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:outline-none transition-all shadow-sm appearance-none cursor-pointer"
-                        >
-                          <option value="">{t('Select Supervisor (Optional)')}</option>
-                          {supervisors.map(s => (
-                            <option key={s.id} value={s.id}>{s.full_name}</option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" size={18} />
+                      <div className="space-y-3">
+                        <div className="group relative">
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                          <input
+                            type="text"
+                            placeholder={t('Search supervisor by name...')}
+                            value={supervisorSearch}
+                            onChange={(e) => setSupervisorSearch(e.target.value)}
+                            className="w-full rounded-2xl border border-stone-200 bg-stone-50/30 pl-12 pr-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:outline-none transition-all shadow-sm"
+                          />
+                        </div>
+                        <div className="group relative">
+                          <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-emerald-500 transition-colors pointer-events-none" size={18} />
+                          <select
+                            name="supervisor_id"
+                            value={formData.supervisor_id}
+                            onChange={handleChange}
+                            className="w-full rounded-2xl border border-stone-200 bg-stone-50/30 pl-12 pr-10 py-3.5 text-sm text-stone-900 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:outline-none transition-all shadow-sm appearance-none cursor-pointer"
+                          >
+                            <option value="">{t('Select Supervisor (Optional)')}</option>
+                            {filteredSupervisors.map(s => (
+                              <option key={s.id} value={s.id}>{s.full_name}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" size={18} />
+                        </div>
                       </div>
                     </div>
                   </div>

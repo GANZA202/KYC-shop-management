@@ -101,7 +101,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         { title: t('My Team Debt'), href: '/reports/supervisor-debt', roles: ['supervisor'] },
       ]
     },
-    { title: t('Settings'), href: '/settings', icon: Settings, roles: ['admin'] },
+    { 
+      title: t('System'), 
+      href: '/admin', 
+      icon: Globe, 
+      roles: ['admin'],
+      children: [
+        { title: t('Sectors'), href: '/admin/sectors' },
+        { title: t('Settings'), href: '/settings' },
+      ]
+    },
   ];
 
   const toggleMenu = (title: string) => {

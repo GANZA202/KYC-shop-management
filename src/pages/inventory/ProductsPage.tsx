@@ -20,6 +20,7 @@ export function ProductsPage() {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -35,14 +36,22 @@ export function ProductsPage() {
     is_active: true
   });
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   useEffect(() => {
     fetchData();
-  }, [search, categoryFilter]);
+  }, [debouncedSearch, categoryFilter]);
 
   const fetchData = async () => {
     setLoading(true);
     const [productsRes, categoriesRes] = await Promise.all([
-      inventoryService.getProducts({ search, category_id: categoryFilter }),
+      inventoryService.getProducts({ search: debouncedSearch, category_id: categoryFilter }),
       inventoryService.getCategories()
     ]);
     

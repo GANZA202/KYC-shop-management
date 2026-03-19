@@ -32,15 +32,28 @@ export function EmployeeListPage() {
   
   // Filters
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sectorFilter, setSectorFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // Reset to first page on search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   useEffect(() => {
     fetchSectors();
+  }, []);
+
+  useEffect(() => {
     fetchEmployees();
-  }, [search, sectorFilter, typeFilter, page]);
+  }, [debouncedSearch, sectorFilter, typeFilter, page]);
 
   const fetchSectors = async () => {
     const { data } = await supabase.from('sectors').select('*').order('name');
@@ -54,8 +67,8 @@ export function EmployeeListPage() {
         .from('employees')
         .select('*', { count: 'exact' });
 
-      if (search) {
-        query = query.or(`full_name.ilike.%${search}%,employee_code.ilike.%${search}%,national_id.ilike.%${search}%`);
+      if (debouncedSearch) {
+        query = query.or(`full_name.ilike.%${debouncedSearch}%,employee_code.ilike.%${debouncedSearch}%,national_id.ilike.%${debouncedSearch}%`);
       }
       if (sectorFilter) {
         query = query.eq('sector_id', sectorFilter);
