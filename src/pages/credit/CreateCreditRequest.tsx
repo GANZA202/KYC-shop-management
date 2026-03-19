@@ -276,7 +276,7 @@ export function CreateCreditRequest() {
                       type="number"
                       min="1"
                       required
-                      value={item.quantity}
+                      value={isNaN(item.quantity) ? '' : item.quantity}
                       onChange={(e) => updateLineItem(index, 'quantity', e.target.value)}
                       className="w-full rounded-lg border-stone-300 text-sm"
                     />

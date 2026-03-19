@@ -361,8 +361,8 @@ export function ProductsPage() {
                     type="number"
                     required
                     min="0"
-                    value={formData.unit_price}
-                    onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) })}
+                    value={isNaN(formData.unit_price) ? '' : formData.unit_price}
+                    onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) || 0 })}
                     className="w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
@@ -375,8 +375,8 @@ export function ProductsPage() {
                     type="number"
                     required
                     min="0"
-                    value={formData.reorder_level}
-                    onChange={(e) => setFormData({ ...formData, reorder_level: parseInt(e.target.value) })}
+                    value={isNaN(formData.reorder_level) ? '' : formData.reorder_level}
+                    onChange={(e) => setFormData({ ...formData, reorder_level: parseInt(e.target.value) || 0 })}
                     className="w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-emerald-500 focus:outline-none"
                   />
                 </div>

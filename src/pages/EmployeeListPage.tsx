@@ -7,7 +7,11 @@ import {
   UserPlus,
   ChevronLeft,
   ChevronRight,
-  Loader2
+  Loader2,
+  Users,
+  Briefcase,
+  MapPin,
+  RefreshCw
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Employee, Sector } from '../types/database';
@@ -77,111 +81,172 @@ export function EmployeeListPage() {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-900">{t('Employees')}</h1>
-          <p className="text-stone-500 text-sm">{t('Manage your shop staff and worker details.')}</p>
+    <div className="max-w-[1600px] mx-auto space-y-8 pb-12 animate-in fade-in duration-500">
+      {/* Header Section */}
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em]">
+            <Users size={14} />
+            <span>{t('Staff Management')}</span>
+          </div>
+          <h1 className="text-4xl font-black text-stone-900 tracking-tight">{t('Employees')}</h1>
+          <p className="text-stone-500 text-base max-w-md">{t('Manage your workforce, track roles, and handle registrations with precision.')}</p>
         </div>
-        {(role === 'admin' || role === 'team_leader') && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+        
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => fetchEmployees()}
+            className="p-3 rounded-2xl border border-stone-200 text-stone-500 hover:bg-stone-50 hover:text-stone-900 transition-all active:scale-95"
+            title={t('Refresh')}
           >
-            <UserPlus size={18} />
-            <span>{t('Add Employee')}</span>
+            <RefreshCw size={20} className={cn(loading && "animate-spin")} />
           </button>
-        )}
+          
+          {(role === 'admin' || role === 'team_leader') && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 hover:shadow-emerald-600/30 transition-all active:scale-95"
+            >
+              <UserPlus size={20} />
+              <span>{t('Add Employee')}</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="grid gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+      {/* Stats Overview (Quick Glance) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm flex items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <Users size={24} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">{t('Total Staff')}</p>
+            <p className="text-2xl font-black text-stone-900">{totalCount}</p>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm flex items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
+            <Briefcase size={24} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">{t('Supervisors')}</p>
+            <p className="text-2xl font-black text-stone-900">{employees.filter(e => e.worker_type === 'supervisor').length}</p>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm flex items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+            <MapPin size={24} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">{t('Active Sectors')}</p>
+            <p className="text-2xl font-black text-stone-900">{sectors.length}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters & Search */}
+      <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between bg-white p-4 rounded-3xl border border-stone-100 shadow-sm">
+        <div className="relative flex-1 max-w-md group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
           <input
             type="text"
             placeholder={t('Search name, code, ID...')}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full rounded-lg border border-stone-200 pl-10 pr-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+            className="w-full rounded-2xl border border-stone-100 bg-stone-50/50 pl-12 pr-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:outline-none transition-all"
           />
         </div>
 
-        <select
-          value={sectorFilter}
-          onChange={(e) => { setSectorFilter(e.target.value); setPage(1); }}
-          className="rounded-lg border border-stone-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none bg-white"
-        >
-          <option value="">{t('All Sectors')}</option>
-          {sectors.map(s => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={sectorFilter}
+            onChange={(e) => { setSectorFilter(e.target.value); setPage(1); }}
+            className="rounded-2xl border border-stone-100 bg-stone-50/50 px-4 py-3 text-sm font-medium text-stone-600 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all cursor-pointer"
+          >
+            <option value="">{t('All Sectors')}</option>
+            {sectors.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
 
-        <select
-          value={typeFilter}
-          onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
-          className="rounded-lg border border-stone-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none bg-white"
-        >
-          <option value="">{t('All Worker Types')}</option>
-          <option value="casual">{t('Casual')}</option>
-          <option value="supervisor">{t('Supervisor')}</option>
-        </select>
+          <select
+            value={typeFilter}
+            onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
+            className="rounded-2xl border border-stone-100 bg-stone-50/50 px-4 py-3 text-sm font-medium text-stone-600 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all cursor-pointer"
+          >
+            <option value="">{t('All Worker Types')}</option>
+            <option value="casual">{t('Casual')}</option>
+            <option value="supervisor">{t('Supervisor')}</option>
+          </select>
 
-        <div className="flex items-center gap-2 text-sm text-stone-500">
-          <Filter size={16} />
-          <span>{totalCount} {t('employees found')}</span>
+          <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-2xl bg-stone-50 text-xs font-bold text-stone-400 uppercase tracking-wider">
+            <Filter size={14} />
+            <span>{totalCount} {t('Results')}</span>
+          </div>
         </div>
       </div>
 
       {/* Mobile View: Cards */}
       <div className="grid grid-cols-1 gap-4 lg:hidden">
         {loading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="animate-spin text-emerald-600" size={32} />
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-stone-100">
+            <Loader2 className="animate-spin text-emerald-600 mb-4" size={32} />
+            <p className="text-stone-500 font-medium">{t('Loading staff data...')}</p>
           </div>
         ) : employees.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-stone-200 text-stone-500">
-            {t('No employees found.')}
+          <div className="text-center py-20 bg-white rounded-3xl border border-stone-100 text-stone-500">
+            <Users size={48} className="mx-auto mb-4 opacity-20" />
+            <p className="text-lg font-bold text-stone-900">{t('No employees found')}</p>
+            <p className="text-sm">{t('Try adjusting your search or filters.')}</p>
           </div>
         ) : (
           employees.map((emp) => (
-            <div key={emp.id} className="bg-white p-4 rounded-xl border border-stone-200 shadow-sm space-y-3">
+            <div key={emp.id} className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm space-y-4 hover:border-emerald-200 transition-all group">
               <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-bold text-stone-900">{emp.full_name}</h3>
-                  <p className="text-xs font-mono text-emerald-600">{emp.employee_code}</p>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-stone-100 flex items-center justify-center text-stone-500 font-bold text-sm">
+                    {emp.full_name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-stone-900 group-hover:text-emerald-600 transition-colors">{emp.full_name}</h3>
+                    <p className="text-xs font-mono font-bold text-emerald-600">{emp.employee_code}</p>
+                  </div>
                 </div>
                 <span className={cn(
-                  "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
+                  "rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider",
                   emp.status === 'active' ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-700"
                 )}>
                   {t(emp.status === 'active' ? 'Active' : 'Inactive')}
                 </span>
               </div>
               
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <p className="text-stone-400 uppercase font-bold text-[9px]">{t('National ID')}</p>
-                  <p className="text-stone-700">{emp.national_id}</p>
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="space-y-1">
+                  <p className="text-stone-400 uppercase font-bold text-[9px] tracking-widest">{t('National ID')}</p>
+                  <p className="text-sm font-medium text-stone-700">{emp.national_id}</p>
                 </div>
-                <div>
-                  <p className="text-stone-400 uppercase font-bold text-[9px]">{t('Type')}</p>
-                  <p className="text-stone-700 capitalize">{t(emp.worker_type)}</p>
+                <div className="space-y-1">
+                  <p className="text-stone-400 uppercase font-bold text-[9px] tracking-widest">{t('Type')}</p>
+                  <p className="text-sm font-medium text-stone-700 capitalize">{t(emp.worker_type)}</p>
                 </div>
-                <div>
-                  <p className="text-stone-400 uppercase font-bold text-[9px]">{t('Daily Rate')}</p>
-                  <p className="text-stone-700">RWF {emp.daily_rate.toLocaleString()}</p>
+                <div className="space-y-1">
+                  <p className="text-stone-400 uppercase font-bold text-[9px] tracking-widest">{t('Daily Rate')}</p>
+                  <p className="text-sm font-bold text-stone-900">RWF {emp.daily_rate.toLocaleString()}</p>
                 </div>
-                <div>
-                  <p className="text-stone-400 uppercase font-bold text-[9px]">{t('Phone')}</p>
-                  <p className="text-stone-700">{emp.phone || '-'}</p>
+                <div className="space-y-1">
+                  <p className="text-stone-400 uppercase font-bold text-[9px] tracking-widest">{t('Phone')}</p>
+                  <p className="text-sm font-medium text-stone-700">{emp.phone || '-'}</p>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-stone-100 flex justify-end">
-                <button className="p-2 text-stone-400 hover:text-stone-600 rounded-lg hover:bg-stone-50">
-                  <MoreVertical size={18} />
+              <div className="pt-4 border-t border-stone-50 flex justify-between items-center">
+                <div className="flex items-center gap-2 text-xs text-stone-400">
+                  <MapPin size={12} />
+                  <span>{sectors.find(s => s.id === emp.sector_id)?.name || t('No Sector')}</span>
+                </div>
+                <button className="p-2 text-stone-400 hover:text-stone-900 rounded-xl hover:bg-stone-50 transition-all">
+                  <MoreVertical size={20} />
                 </button>
               </div>
             </div>
@@ -190,67 +255,83 @@ export function EmployeeListPage() {
       </div>
 
       {/* Desktop View: Table */}
-      <div className="hidden lg:block overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+      <div className="hidden lg:block overflow-hidden rounded-[32px] border border-stone-100 bg-white shadow-xl shadow-stone-200/40">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-stone-50 text-stone-500 font-medium border-b border-stone-200">
-              <tr>
-                <th className="px-6 py-4">{t('Code')}</th>
-                <th className="px-6 py-4">{t('Full Name')}</th>
-                <th className="px-6 py-4">{t('National ID')}</th>
-                <th className="px-6 py-4">{t('Worker Type')}</th>
-                <th className="px-6 py-4">{t('Daily Rate')}</th>
-                <th className="px-6 py-4">{t('Status')}</th>
-                <th className="px-6 py-4"></th>
+          <table className="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr className="bg-stone-50/50 text-stone-400 font-bold text-[11px] uppercase tracking-[0.15em] border-b border-stone-100">
+                <th className="px-8 py-5">{t('Staff Member')}</th>
+                <th className="px-8 py-5">{t('Identity')}</th>
+                <th className="px-8 py-5">{t('Role & Sector')}</th>
+                <th className="px-8 py-5">{t('Compensation')}</th>
+                <th className="px-8 py-5">{t('Status')}</th>
+                <th className="px-8 py-5"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="divide-y divide-stone-50">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
-                    <Loader2 className="mx-auto animate-spin text-emerald-600" size={24} />
+                  <td colSpan={6} className="px-8 py-20 text-center">
+                    <Loader2 className="mx-auto animate-spin text-emerald-600 mb-2" size={32} />
+                    <p className="text-stone-400 font-medium">{t('Fetching records...')}</p>
                   </td>
                 </tr>
               ) : employees.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-stone-500">
-                    {t('No employees found.')}
+                  <td colSpan={6} className="px-8 py-20 text-center text-stone-400">
+                    <Users size={48} className="mx-auto mb-4 opacity-10" />
+                    <p className="text-lg font-bold text-stone-900">{t('No staff records found')}</p>
+                    <p>{t('Try clearing your filters or adding a new employee.')}</p>
                   </td>
                 </tr>
               ) : (
                 employees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-stone-50 transition-colors">
-                    <td className="px-6 py-4 font-mono text-xs font-bold text-emerald-600">
-                      {emp.employee_code}
+                  <tr key={emp.id} className="group hover:bg-stone-50/50 transition-all cursor-pointer">
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="h-11 w-11 rounded-2xl bg-stone-100 flex items-center justify-center text-stone-500 font-bold text-sm group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-colors">
+                          {emp.full_name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="font-bold text-stone-900 group-hover:text-emerald-600 transition-colors">{emp.full_name}</div>
+                          <div className="text-xs text-stone-400 font-medium">{emp.phone || t('No phone')}</div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-stone-900">{emp.full_name}</div>
-                      <div className="text-xs text-stone-500">{emp.phone || t('No phone')}</div>
+                    <td className="px-8 py-5">
+                      <div className="text-xs font-mono font-bold text-emerald-600 mb-1 leading-none">{emp.employee_code}</div>
+                      <div className="text-sm text-stone-500 font-medium">{emp.national_id}</div>
                     </td>
-                    <td className="px-6 py-4 text-stone-600">{emp.national_id}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-8 py-5">
+                      <div className="flex flex-col gap-1.5">
+                        <span className={cn(
+                          "inline-flex w-fit rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-wider",
+                          emp.worker_type === 'supervisor' ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600"
+                        )}>
+                          {t(emp.worker_type)}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-xs text-stone-400 font-medium">
+                          <MapPin size={12} />
+                          <span>{sectors.find(s => s.id === emp.sector_id)?.name || t('No Sector')}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      <div className="text-sm font-black text-stone-900">RWF {emp.daily_rate.toLocaleString()}</div>
+                      <div className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">{t('per day')}</div>
+                    </td>
+                    <td className="px-8 py-5">
                       <span className={cn(
-                        "inline-flex rounded-full px-2 py-1 text-xs font-medium capitalize",
-                        emp.worker_type === 'supervisor' ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
+                        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest",
+                        emp.status === 'active' ? "bg-emerald-50 text-emerald-600" : "bg-stone-50 text-stone-400"
                       )}>
-                        {t(emp.worker_type.charAt(0).toUpperCase() + emp.worker_type.slice(1))}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-medium text-stone-900">
-                      RWF {emp.daily_rate.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium",
-                        emp.status === 'active' ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-700"
-                      )}>
-                        <span className={cn("h-1.5 w-1.5 rounded-full", emp.status === 'active' ? "bg-emerald-600" : "bg-stone-400")} />
+                        <span className={cn("h-1.5 w-1.5 rounded-full", emp.status === 'active' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-stone-300")} />
                         {t(emp.status === 'active' ? 'Active' : 'Inactive')}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-stone-400 hover:text-stone-600">
-                        <MoreVertical size={18} />
+                    <td className="px-8 py-5 text-right">
+                      <button className="p-2 text-stone-300 hover:text-stone-900 hover:bg-white rounded-xl shadow-sm transition-all opacity-0 group-hover:opacity-100">
+                        <MoreVertical size={20} />
                       </button>
                     </td>
                   </tr>
@@ -262,24 +343,26 @@ export function EmployeeListPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-stone-200 px-6 py-4">
-            <p className="text-sm text-stone-500">
-              {t('Showing')} <span className="font-medium">{(page - 1) * ITEMS_PER_PAGE + 1}</span> {t('to')} <span className="font-medium">{Math.min(page * ITEMS_PER_PAGE, totalCount)}</span> {t('of')} <span className="font-medium">{totalCount}</span> {t('results')}
+          <div className="flex items-center justify-between border-t border-stone-50 px-8 py-6 bg-stone-50/30">
+            <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">
+              {t('Showing')} <span className="text-stone-900">{(page - 1) * ITEMS_PER_PAGE + 1}</span> {t('to')} <span className="text-stone-900">{Math.min(page * ITEMS_PER_PAGE, totalCount)}</span> {t('of')} <span className="text-stone-900">{totalCount}</span> {t('Records')}
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="rounded-lg border border-stone-200 p-2 text-stone-600 hover:bg-stone-50 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-2xl border border-stone-200 bg-white px-4 py-2 text-xs font-bold text-stone-600 hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={16} />
+                <span>{t('Previous')}</span>
               </button>
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="rounded-lg border border-stone-200 p-2 text-stone-600 hover:bg-stone-50 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-2xl border border-stone-200 bg-white px-4 py-2 text-xs font-bold text-stone-600 hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
               >
-                <ChevronRight size={18} />
+                <span>{t('Next')}</span>
+                <ChevronRight size={16} />
               </button>
             </div>
           </div>

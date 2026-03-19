@@ -177,6 +177,17 @@ CREATE TABLE IF NOT EXISTS public.payroll_deductions (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 9. Orders Table (New)
+CREATE TABLE IF NOT EXISTS public.orders (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users ON DELETE CASCADE,
+    product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+    quantity INTEGER NOT NULL,
+    total_price NUMERIC NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'cancelled')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Enable Row Level Security
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sectors ENABLE ROW LEVEL SECURITY;
@@ -190,6 +201,7 @@ ALTER TABLE public.credit_request_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payroll_periods ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payrolls ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payroll_deductions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies (Simplified for now, can be hardened later)
 DO $$ BEGIN
@@ -205,6 +217,7 @@ DO $$ BEGIN
     CREATE POLICY "Public read access" ON public.payroll_periods FOR SELECT USING (true);
     CREATE POLICY "Public read access" ON public.payrolls FOR SELECT USING (true);
     CREATE POLICY "Public read access" ON public.payroll_deductions FOR SELECT USING (true);
+    CREATE POLICY "Users can view their own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -235,6 +248,7 @@ DO $$ BEGIN
     CREATE POLICY "Auth update" ON public.payrolls FOR UPDATE USING (auth.role() = 'authenticated');
     CREATE POLICY "Auth insert" ON public.payroll_deductions FOR INSERT WITH CHECK (auth.role() = 'authenticated');
     CREATE POLICY "Auth update" ON public.payroll_deductions FOR UPDATE USING (auth.role() = 'authenticated');
+    CREATE POLICY "Users can insert their own orders" ON public.orders FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;

@@ -3,6 +3,7 @@ import { MessageCircle, X, Send, Loader2, Bot } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '../lib/utils';
 
 const SYSTEM_INSTRUCTION = `
 You are a KYC (Know Your Customer) Assistant for the KYC SHOP management system.
@@ -78,10 +79,11 @@ export function Chatbot() {
     <>
       {/* Toggle Button */}
       <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition-transform hover:scale-110 active:scale-95"
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition-all hover:scale-110 active:scale-95"
+        aria-label={isOpen ? "Close Chat" : "Open Chat"}
       >
-        <MessageCircle size={28} />
+        {isOpen ? <X size={28} /> : <MessageCircle size={28} />}
       </button>
 
       {/* Chat Window */}
@@ -91,15 +93,24 @@ export function Chatbot() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[350px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-stone-200"
+            className="fixed bottom-24 right-4 z-50 flex h-[500px] max-h-[calc(100vh-120px)] w-[calc(100vw-32px)] sm:w-[380px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-stone-200"
           >
             {/* Header */}
             <div className="flex items-center justify-between bg-emerald-600 p-4 text-white">
               <div className="flex items-center gap-2">
-                <Bot size={20} />
-                <span className="font-bold">{t('KYC Chatbot')}</span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+                  <Bot size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold leading-none">{t('KYC Chatbot')}</h3>
+                  <span className="text-[10px] text-emerald-100">Online Assistant</span>
+                </div>
               </div>
-              <button onClick={() => setIsOpen(false)} className="hover:text-stone-200">
+              <button 
+                onClick={() => setIsOpen(false)} 
+                className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-white/10"
+                title="Close"
+              >
                 <X size={20} />
               </button>
             </div>
@@ -162,9 +173,4 @@ export function Chatbot() {
       </AnimatePresence>
     </>
   );
-}
-
-// Helper for cn
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

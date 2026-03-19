@@ -24,8 +24,9 @@ export function LoginPage() {
         } else {
           setConnectionStatus('online');
         }
-      } catch (err) {
-        console.error('Connection check failed:', err);
+      } catch (err: any) {
+        const isNetworkError = err.message?.includes('Failed to fetch') || err.name === 'TypeError';
+        console.error('Connection check failed:', isNetworkError ? 'Network error (Failed to fetch)' : err);
         setConnectionStatus('offline');
       }
     };

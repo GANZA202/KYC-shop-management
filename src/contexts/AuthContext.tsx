@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Profile, UserRole } from '../types/database';
 
 interface AuthContextType {
@@ -87,12 +87,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function fetchProfile(userId: string, retries = 2) {
     // Prevent concurrent fetches for the same user
     if (fetchingId === userId) return;
+    
+    if (!isSupabaseConfigured) {
+      console.error('Supabase is not configured. Profile fetch aborted.');
+      setConnectionIssue(true);
+      setLoading(false);
+      return;
+    }
+
     setFetchingId(userId);
     
     try {
       for (let i = 0; i < retries + 1; i++) {
-        // Attempt 1: 5s, Attempt 2: 15s, Attempt 3: 30s
-        const timeoutDuration = i === 0 ? 5000 : 15000 * i; 
+        // Attempt 1: 10s, Attempt 2: 20s, Attempt 3: 40s
+        const timeoutDuration = i === 0 ? 10000 : 20000 * i; 
         
         console.log(`Fetching profile for: ${userId} (Attempt ${i + 1}/${retries + 1}, Timeout: ${timeoutDuration}ms)`);
         
@@ -130,6 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           clearTimeout(timeoutId);
           const isTimeout = error.name === 'AbortError' || error.message?.includes('timeout');
           const isTableMissing = error.message?.includes('Could not find the table');
+          const isNetworkError = error.message?.includes('Failed to fetch') || error.name === 'TypeError';
           
           if (isTableMissing) {
             setTableMissing(true);
@@ -137,9 +146,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          console.error(`Error fetching profile (Attempt ${i + 1}):`, isTimeout ? `Timeout after ${timeoutDuration}ms` : error.message || error);
+          console.error(`Error fetching profile (Attempt ${i + 1}):`, 
+            isTimeout ? `Timeout after ${timeoutDuration}ms` : 
+            isNetworkError ? 'Network error (Failed to fetch)' : 
+            error.message || error
+          );
           
-          if (isTimeout && i === 0) {
+          if ((isTimeout || isNetworkError) && i === 0) {
             setConnectionIssue(true);
           }
 
@@ -149,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         
         if (i < retries) {
-          const backoff = 500 * (i + 1);
+          const backoff = 1000 * (i + 1); // Increased backoff
           await new Promise(resolve => setTimeout(resolve, backoff));
         }
       }
