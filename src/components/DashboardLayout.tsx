@@ -20,6 +20,7 @@ import { cn } from '../lib/utils';
 import { UserRole } from '../types/database';
 import { useTranslation } from 'react-i18next';
 import { Chatbot } from './Chatbot';
+import { NotificationCenter } from './NotificationCenter';
 
 interface NavItem {
   title: string;
@@ -254,6 +255,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </button>
           
           <div className="ml-auto flex items-center gap-6">
+            {/* Notifications */}
+            {(role === 'admin' || role === 'accountant') && <NotificationCenter />}
+
             {/* Language Switcher */}
             <div className="flex items-center gap-2 border-r border-stone-200 pr-6">
               <Globe size={18} className="text-stone-400" />

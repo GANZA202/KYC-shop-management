@@ -3,7 +3,8 @@ import {
   AlertTriangle, 
   Loader2,
   Package,
-  ArrowRight
+  ArrowRight,
+  Bell
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { inventoryService } from '../../services/inventoryService';
@@ -33,6 +34,10 @@ export function LowStockAlertsPage() {
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Low Stock Alerts</h1>
           <p className="text-stone-500">Products that have reached or dropped below their reorder level.</p>
+          <p className="text-xs text-emerald-600 mt-1 font-medium flex items-center gap-1">
+            <Bell size={12} />
+            Admins and Accountants receive real-time notifications for these alerts.
+          </p>
         </div>
       </div>
 

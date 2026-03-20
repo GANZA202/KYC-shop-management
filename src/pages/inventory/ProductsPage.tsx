@@ -206,18 +206,29 @@ export function ProductsPage() {
               <div className="pt-2 border-t border-stone-100 flex justify-end gap-2">
                 <button 
                   onClick={() => handleOpenModal(product)}
-                  className="p-2 text-stone-400 hover:text-emerald-600 rounded-lg hover:bg-stone-50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-600 hover:text-emerald-600 rounded-lg hover:bg-stone-50 border border-stone-200"
                 >
-                  <Edit2 size={18} />
+                  <Edit2 size={14} />
+                  <span>Edit</span>
                 </button>
                 <button 
                   onClick={() => toggleStatus(product)}
                   className={cn(
-                    "p-2 rounded-lg hover:bg-stone-50",
-                    product.is_active ? "text-stone-400 hover:text-red-600" : "text-stone-400 hover:text-emerald-600"
+                    "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 hover:bg-stone-50",
+                    product.is_active ? "text-stone-600 hover:text-red-600" : "text-stone-600 hover:text-emerald-600"
                   )}
                 >
-                  {product.is_active ? <Trash2 size={18} /> : <CheckCircle size={18} />}
+                  {product.is_active ? (
+                    <>
+                      <Trash2 size={14} />
+                      <span>Deactivate</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={14} />
+                      <span>Activate</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -285,18 +296,29 @@ export function ProductsPage() {
                       <div className="flex justify-end gap-2">
                         <button 
                           onClick={() => handleOpenModal(product)}
-                          className="p-1 text-stone-400 hover:text-emerald-600"
+                          className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-stone-600 hover:text-emerald-600 rounded-lg hover:bg-stone-50 border border-stone-200"
                         >
-                          <Edit2 size={16} />
+                          <Edit2 size={14} />
+                          <span>Edit</span>
                         </button>
                         <button 
                           onClick={() => toggleStatus(product)}
                           className={cn(
-                            "p-1",
-                            product.is_active ? "text-stone-400 hover:text-red-600" : "text-stone-400 hover:text-emerald-600"
+                            "flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-lg border border-stone-200 hover:bg-stone-50",
+                            product.is_active ? "text-stone-600 hover:text-red-600" : "text-stone-600 hover:text-emerald-600"
                           )}
                         >
-                          {product.is_active ? <Trash2 size={16} /> : <CheckCircle size={16} />}
+                          {product.is_active ? (
+                            <>
+                              <Trash2 size={14} />
+                              <span>Deactivate</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle size={14} />
+                              <span>Activate</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     </td>
